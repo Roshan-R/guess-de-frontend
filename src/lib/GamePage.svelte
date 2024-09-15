@@ -93,7 +93,7 @@
       return;
     }
     if (!selectedPlayer) {
-      alert("Select a player");
+      alert("Select a player or Skip the Round");
       return;
     }
 
