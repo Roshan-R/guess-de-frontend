@@ -1,7 +1,7 @@
 <script lang="ts">
   import { playerStore, roundStore } from "./store";
   import { PlayCircle, PauseCircle, Rewind, FastForward } from "lucide-svelte";
-  import ComboBox from "./components/ComboBox.svelte";
+  import * as ToggleGroup from "$lib/components/ui/toggle-group/index.js";
 
   import { Progress } from "$lib/components/ui/progress";
   import { Button } from "$lib/components/ui/button";
@@ -191,7 +191,17 @@
   {#if !guessing}
     <div class="mb-4 text-xl">Who got it first?</div>
     <div class="flex justify-evenly flex-col">
-      <ComboBox bind:value={selectedPlayer} />
+      <ToggleGroup.Root
+        type="single"
+        class="justify-start"
+        bind:value={selectedPlayer}
+      >
+        {#each $playerStore as player}
+          <ToggleGroup.Item value={player.name} aria-label="Toggle bold">
+            <div class="w-full">{player.name}</div>
+          </ToggleGroup.Item>
+        {/each}
+      </ToggleGroup.Root>
       <div class="flex justify-evenly mt-5">
         <Button on:click={skipRound}>Skip Round</Button>
         <Button on:click={playNextRound}>Next Round</Button>
