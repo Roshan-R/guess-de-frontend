@@ -113,8 +113,6 @@
 
   // On component mount, load the first song
   onMount(refreshSong);
-
-  $: console.log(selectedPlayer);
 </script>
 
 <!-- Scoreboard -->

@@ -3,12 +3,27 @@
   import Button from "./components/ui/button/button.svelte";
   import { Link } from "svelte-routing";
 
+  let isTie: boolean;
   let winningPlayer = $playerStore.reduce((prev, current) =>
     prev && prev.score > current.score ? prev : current,
-  ).name;
+  );
+  for (let player of $playerStore) {
+    if (
+      player.name != winningPlayer.name &&
+      player.score == winningPlayer.score
+    ) {
+      isTie = true;
+    }
+  }
 </script>
 
-<div class="text-2xl mb-5">Congratulations to {winningPlayer}!</div>
+<div class="text-2xl mb-5">
+  {#if isTie}
+    It's a tie!
+  {:else}
+    Congratulations to {winningPlayer.name}!
+  {/if}
+</div>
 
 <div class="p-4 mb-6">
   <h2 class="text-lg font-semibold mb-4">Scoreboard</h2>
