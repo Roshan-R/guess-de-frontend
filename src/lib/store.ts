@@ -6,4 +6,7 @@ type Player = {
 }
 
 // Initialize players store with an array of player objects
-export const playerStore = writable("players", new Array<Player>());
+const playerStore = writable("players", new Array<Player>());
+const roundStore = writable("rounds", 0);
+
+export { playerStore, roundStore }

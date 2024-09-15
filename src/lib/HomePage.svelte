@@ -3,8 +3,10 @@
   import PlusIcon from "./components/icons/PlusIcon.svelte";
   import MinusIcon from "./components/icons/MinusIcon.svelte";
   import ArrowRightIcon from "./components/icons/ArrowRightIcon.svelte";
-  import { playerStore } from "./store";
+  import { playerStore, roundStore } from "./store";
   import { Link } from "svelte-routing";
+
+  import * as ToggleGroup from "$lib/components/ui/toggle-group/index.js";
 
   const addPlayer = () => {
     playerStore.update((currentPlayers) => [
@@ -21,14 +23,6 @@
       return updatedPlayers;
     });
   };
-
-  //const updatePlayerScore = (index, value) => {
-  //    players.update((currentPlayers) => {
-  //        const updatedPlayers = [...currentPlayers];
-  //        updatedPlayers[index].score = parseInt(value) || 0; // Ensure score is an integer
-  //        return updatedPlayers;
-  //    });
-  //};
 
   const removePlayer = (index: number) => {
     playerStore.update((currentPlayers) => {
@@ -73,7 +67,20 @@
       </div>
     {/each}
   </div>
+  <p class="text-lg font-semibold">Number of rounds</p>
+  <ToggleGroup.Root
+    type="single"
+    class="justify-start"
+    bind:value={$roundStore}
+  >
+    {#each ["3", "5", "10"] as number}
+      <ToggleGroup.Item value={number} aria-label="Toggle bold">
+        <div class="h-4 w-4">{number}</div>
+      </ToggleGroup.Item>
+    {/each}
+  </ToggleGroup.Root>
 </div>
+
 <Link to="/game">
   <button class="flex justify-center w-full py-2 mt-4 border rounded">
     <ArrowRightIcon />

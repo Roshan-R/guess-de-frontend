@@ -3,6 +3,7 @@
   import HomePage from "./lib/HomePage.svelte";
   import GamePage from "./lib/GamePage.svelte";
   import { Router, Link, Route } from "svelte-routing";
+  import ResultPage from "$lib/ResultPage.svelte";
   export let url = "";
 </script>
 
@@ -14,6 +15,7 @@
     <Router {url}>
       <div>
         <Route path="/game" component={GamePage} />
+        <Route path="/scoreboard" component={ResultPage} />
         <Route path="/"><HomePage /></Route>
       </div>
     </Router>

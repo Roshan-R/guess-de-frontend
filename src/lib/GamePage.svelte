@@ -1,8 +1,13 @@
 <script lang="ts">
-  import { playerStore } from "./store";
+  import { playerStore, roundStore } from "./store";
   import { PlayCircle, PauseCircle, Rewind, FastForward } from "lucide-svelte";
   import ComboBox from "./components/ComboBox.svelte";
+
+  import { Progress } from "$lib/components/ui/progress";
+  import { Button } from "$lib/components/ui/button";
+
   import { onMount } from "svelte";
+  import { navigate } from "svelte-routing";
 
   // Component state
   let progress = 0;
@@ -14,6 +19,12 @@
   let songIsLoading = true;
   let songTitle = "";
   let audioUrl = "";
+  let imageUrl = "";
+  let songDescription = "";
+
+  let roundNumber = 1;
+
+  $: roundFinalized = $roundStore - roundNumber == 0 ? true : false;
 
   // Helper to load a new song and reset the state
   const refreshSong = async () => {
@@ -21,7 +32,7 @@
     const baseUrl = import.meta.env.VITE_API_URL;
     const response = await fetch(baseUrl + "/getVideo");
     const data = await response.json();
-    [audioUrl, songTitle] = data;
+    [audioUrl, songTitle, imageUrl, songDescription] = data;
 
     initializeAudio(audioUrl);
     songIsLoading = false;
@@ -75,6 +86,12 @@
 
   // Progress to the next round, updating player score
   const playNextRound = () => {
+    roundNumber += 1;
+    if (roundFinalized) {
+      resetState();
+      navigate("/scoreboard", { replace: true });
+      return;
+    }
     if (!selectedPlayer) {
       alert("Select a player");
       return;
@@ -90,89 +107,15 @@
     refreshSong();
   };
 
+  const skipRound = () => {
+    refreshSong();
+  };
+
   // On component mount, load the first song
   onMount(refreshSong);
 
   $: console.log(selectedPlayer);
 </script>
-
-{#if !songIsLoading}
-  <div>
-    <!-- Song Box -->
-    <div class="border border-gray-300 rounded-lg px-6 py-4 text-lg mb-8">
-      {#if guessing}
-        Identify the song!
-      {:else}
-        The song was..<br />
-        <div class="text-2xl">
-          {songTitle}
-        </div>
-      {/if}
-    </div>
-
-    <!-- Progress Bar -->
-    <div class="w-full max-w-lg mb-8">
-      <div class="h-2 bg-gray-300 rounded-full overflow-hidden">
-        <div
-          class="h-full bg-blue-500 transition-all duration-500"
-          style="width: {progress}%"
-        ></div>
-      </div>
-    </div>
-
-    {#if guessing}
-      <!-- Music Player Controls -->
-      <div class="flex justify-center space-x-4">
-        <button class="p-2 border rounded" on:click={rewind}>
-          <Rewind class="h-4 w-4" />
-          <span class="sr-only">Rewind</span>
-        </button>
-
-        <button class="p-2 border rounded" on:click={togglePlayPause}>
-          {#if isPlaying}
-            <PauseCircle class="h-4 w-4" />
-          {:else}
-            <PlayCircle class="h-4 w-4" />
-          {/if}
-          <span class="sr-only">{isPlaying ? "Pause" : "Play"}</span>
-        </button>
-
-        <button class="p-2 border rounded" on:click={fastForward}>
-          <FastForward class="h-4 w-4" />
-          <span class="sr-only">Fast Forward</span>
-        </button>
-      </div>
-    {/if}
-  </div>
-
-  {#if !guessing}
-    <div>Who got it first?</div>
-    <ComboBox bind:value={selectedPlayer} />
-    <button
-      on:click={playNextRound}
-      class="px-4 py-2 bg-blue-500 text-white rounded"
-    >
-      Next Round
-    </button>
-  {/if}
-
-  {#if guessing}
-    <!-- Guess Button -->
-    <div class="flex justify-center mt-4">
-      <button
-        on:click={() => {
-          guessing = false;
-          audio.src = null;
-        }}
-        class="px-4 py-2 bg-blue-500 text-white rounded"
-      >
-        Guess!
-      </button>
-    </div>
-  {/if}
-{:else}
-  Loading a song...
-{/if}
 
 <!-- Scoreboard -->
 <div
@@ -190,3 +133,88 @@
     </div>
   </div>
 </div>
+
+<div class="text-lg mb-4">Round number {roundNumber}/{$roundStore}</div>
+
+{#if !guessing}
+  The song was..<br />
+{/if}
+{#if !songIsLoading}
+  <div>
+    <!-- Song Box -->
+    <div class="border border-gray-300 rounded-lg px-6 py-4 text-lg mb-8">
+      {#if guessing}
+        Identify the song!
+      {:else}
+        <div class="flex items-center space-x-2">
+          <img
+            src={imageUrl}
+            alt=""
+            width="88"
+            height="88"
+            class="flex-none rounded-lg bg-slate-100"
+            loading="lazy"
+          />
+          <div class="min-w-0 flex-auto space-y-1 font-semibold">
+            <p class="text-xl leading-6">{songTitle}</p>
+            <h2 class="truncate text-sm leading-6">{songDescription}</h2>
+          </div>
+        </div>
+      {/if}
+    </div>
+
+    {#if guessing}
+      <!-- Progress Bar -->
+      <Progress class="mb-8" bind:value={progress} />
+      <!-- Music Player Controls -->
+      <div class="flex justify-center space-x-4">
+        <button class="p-2 border rounded" on:click={rewind}>
+          <Rewind class="h-4 w-4" />
+          <span class="sr-only">Rewind</span>
+        </button>
+
+        <button class="p-2 border rounded" on:click={togglePlayPause}>
+          {#if isPlaying}
+            <PauseCircle class="h-8 w-12" />
+          {:else}
+            <PlayCircle class="h-8 w-12" />
+          {/if}
+          <span class="sr-only">{isPlaying ? "Pause" : "Play"}</span>
+        </button>
+
+        <button class="p-2 border rounded" on:click={fastForward}>
+          <FastForward class="h-4 w-4" />
+          <span class="sr-only">Fast Forward</span>
+        </button>
+      </div>
+    {/if}
+  </div>
+
+  {#if !guessing}
+    <div class="mb-4 text-xl">Who got it first?</div>
+    <div class="flex justify-evenly flex-col">
+      <ComboBox bind:value={selectedPlayer} />
+      <div class="flex justify-evenly mt-5">
+        <Button on:click={skipRound}>Skip Round</Button>
+        <Button on:click={playNextRound}>Next Round</Button>
+      </div>
+    </div>
+  {/if}
+
+  {#if guessing}
+    <!-- Guess Button -->
+    <div class="flex justify-center mt-4">
+      <Button
+        size="lg"
+        on:click={() => {
+          guessing = false;
+          audio.src = null;
+        }}
+      >
+        Guess!
+      </Button>
+    </div>
+  {/if}
+{:else}
+  Loading a song...
+{/if}
