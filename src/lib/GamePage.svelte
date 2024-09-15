@@ -18,7 +18,8 @@
   // Helper to load a new song and reset the state
   const refreshSong = async () => {
     resetState();
-    const response = await fetch("http://127.0.0.1:8000/getVideo");
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const response = await fetch(baseUrl + "/getVideo");
     const data = await response.json();
     [audioUrl, songTitle] = data;
 
