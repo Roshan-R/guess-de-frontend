@@ -86,17 +86,17 @@
 
   // Progress to the next round, updating player score
   const playNextRound = () => {
+    if (!selectedPlayer) {
+      alert("Select a player or Skip the Round");
+      return;
+    }
+
     roundNumber += 1;
     if (roundFinalized) {
       resetState();
       navigate("/scoreboard", { replace: true });
       return;
     }
-    if (!selectedPlayer) {
-      alert("Select a player or Skip the Round");
-      return;
-    }
-
     playerStore.update((currentPlayers) =>
       currentPlayers.map((player) =>
         player.name === selectedPlayer
