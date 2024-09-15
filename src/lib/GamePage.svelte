@@ -117,7 +117,7 @@
 
 <!-- Scoreboard -->
 <div
-  class="w-48 h-fit border border-gray-200 rounded-lg fixed top-4 right-4 bg-white shadow-lg"
+  class="w-48 h-fit border border-gray-200 rounded-lg fixed top-4 right-4 bg-white shadow-lg dark:bg-black"
 >
   <div class="p-4">
     <h2 class="text-lg font-semibold mb-4">Scoreboard</h2>
