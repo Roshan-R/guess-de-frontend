@@ -1,0 +1,191 @@
+<script lang="ts">
+  import { playerStore } from "./store";
+  import { PlayCircle, PauseCircle, Rewind, FastForward } from "lucide-svelte";
+  import ComboBox from "./components/ComboBox.svelte";
+  import { onMount } from "svelte";
+
+  // Component state
+  let progress = 0;
+  let isPlaying = false;
+  let guessing = true;
+  let selectedPlayer: string | null = null;
+  let audio: HTMLAudioElement = new Audio();
+
+  let songIsLoading = true;
+  let songTitle = "";
+  let audioUrl = "";
+
+  // Helper to load a new song and reset the state
+  const refreshSong = async () => {
+    resetState();
+    const response = await fetch("http://127.0.0.1:8000/getVideo");
+    const data = await response.json();
+    [audioUrl, songTitle] = data;
+
+    initializeAudio(audioUrl);
+    songIsLoading = false;
+  };
+
+  // Resets the UI and state for a new round
+  const resetState = () => {
+    audio.src = null;
+    songIsLoading = true;
+    progress = 0;
+    guessing = true;
+    selectedPlayer = null;
+    audio.src = "";
+    audio.removeEventListener("timeupdate", updateProgress);
+    audio.removeEventListener("ended", handleAudioEnd);
+  };
+
+  // Sets up audio and event listeners
+  const initializeAudio = (url: string) => {
+    audio.src = url;
+    audio.addEventListener("timeupdate", updateProgress);
+    audio.addEventListener("ended", handleAudioEnd);
+    audio.play();
+  };
+
+  // Update progress bar handler
+  const updateProgress = () => {
+    progress = (audio.currentTime / audio.duration) * 100 || 0;
+  };
+
+  // Handle when the song ends
+  const handleAudioEnd = () => {
+    isPlaying = false;
+  };
+
+  // Toggles play/pause functionality
+  const togglePlayPause = () => {
+    isPlaying ? audio.pause() : audio.play();
+    isPlaying = !isPlaying;
+  };
+
+  // Rewind the audio by 10 seconds
+  const rewind = () => {
+    audio.currentTime = Math.max(0, audio.currentTime - 10);
+  };
+
+  // Fast forward the audio by 10 seconds
+  const fastForward = () => {
+    audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
+  };
+
+  // Progress to the next round, updating player score
+  const playNextRound = () => {
+    if (!selectedPlayer) {
+      alert("Select a player");
+      return;
+    }
+
+    playerStore.update((currentPlayers) =>
+      currentPlayers.map((player) =>
+        player.name === selectedPlayer
+          ? { ...player, score: player.score + 10 }
+          : player,
+      ),
+    );
+    refreshSong();
+  };
+
+  // On component mount, load the first song
+  onMount(refreshSong);
+
+  $: console.log(selectedPlayer);
+</script>
+
+{#if !songIsLoading}
+  <div>
+    <!-- Song Box -->
+    <div class="border border-gray-300 rounded-lg px-6 py-4 text-lg mb-8">
+      {#if guessing}
+        Identify the song!
+      {:else}
+        The song was..<br />
+        <div class="text-2xl">
+          {songTitle}
+        </div>
+      {/if}
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="w-full max-w-lg mb-8">
+      <div class="h-2 bg-gray-300 rounded-full overflow-hidden">
+        <div
+          class="h-full bg-blue-500 transition-all duration-500"
+          style="width: {progress}%"
+        ></div>
+      </div>
+    </div>
+
+    {#if guessing}
+      <!-- Music Player Controls -->
+      <div class="flex justify-center space-x-4">
+        <button class="p-2 border rounded" on:click={rewind}>
+          <Rewind class="h-4 w-4" />
+          <span class="sr-only">Rewind</span>
+        </button>
+
+        <button class="p-2 border rounded" on:click={togglePlayPause}>
+          {#if isPlaying}
+            <PauseCircle class="h-4 w-4" />
+          {:else}
+            <PlayCircle class="h-4 w-4" />
+          {/if}
+          <span class="sr-only">{isPlaying ? "Pause" : "Play"}</span>
+        </button>
+
+        <button class="p-2 border rounded" on:click={fastForward}>
+          <FastForward class="h-4 w-4" />
+          <span class="sr-only">Fast Forward</span>
+        </button>
+      </div>
+    {/if}
+  </div>
+
+  {#if !guessing}
+    <div>Who got it first?</div>
+    <ComboBox bind:value={selectedPlayer} />
+    <button
+      on:click={playNextRound}
+      class="px-4 py-2 bg-blue-500 text-white rounded"
+    >
+      Next Round
+    </button>
+  {/if}
+
+  {#if guessing}
+    <!-- Guess Button -->
+    <div class="flex justify-center mt-4">
+      <button
+        on:click={() => {
+          guessing = false;
+          audio.src = null;
+        }}
+        class="px-4 py-2 bg-blue-500 text-white rounded"
+      >
+        Guess!
+      </button>
+    </div>
+  {/if}
+{:else}
+  Loading a song...
+{/if}
+
+<!-- Scoreboard -->
+<div
+  class="w-48 h-fit border border-gray-200 rounded-lg fixed top-4 right-4 bg-white shadow-lg"
+>
+  <div class="p-4">
+    <h2 class="text-lg font-semibold mb-4">Scoreboard</h2>
+    <div class="space-y-2">
+      {#each $playerStore as player}
+        <div class="flex justify-between">
+          <span>{player.name}</span>
+          <span class="font-bold">{player.score}</span>
+        </div>
+      {/each}
+    </div>
+  </div>
+</div>
