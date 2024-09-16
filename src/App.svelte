@@ -16,7 +16,7 @@
 <ModeWatcher />
 
 <div class="flex flex-col items-center justify-center min-h-screen p-4">
-  <div class="flex">
+  <div class="flex gap-4">
     <Button on:click={toggleMode} variant="outline" size="icon">
       <Sun
         class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"

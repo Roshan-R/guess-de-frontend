@@ -21,18 +21,23 @@
   let audioUrl = "";
   let imageUrl = "";
   let songDescription = "";
+  let clientId = "";
 
   let roundNumber = 1;
+  const baseUrl = import.meta.env.VITE_API_URL;
 
   $: roundFinalized = $roundStore - roundNumber == 0 ? true : false;
 
   // Helper to load a new song and reset the state
   const refreshSong = async () => {
     resetState();
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const response = await fetch(baseUrl + "/getVideo");
+    const url =
+      clientId !== ""
+        ? `${baseUrl}/getVideo?client_id=${clientId}`
+        : `${baseUrl}/getVideo`;
+    const response = await fetch(url);
     const data = await response.json();
-    [audioUrl, songTitle, imageUrl, songDescription] = data;
+    [audioUrl, songTitle, imageUrl, songDescription, clientId] = data;
 
     initializeAudio(audioUrl);
     songIsLoading = false;
@@ -85,7 +90,7 @@
   };
 
   // Progress to the next round, updating player score
-  const playNextRound = () => {
+  const playNextRound = async () => {
     if (!selectedPlayer) {
       alert("Select a player or Skip the Round");
       return;
@@ -95,6 +100,7 @@
     if (roundFinalized) {
       resetState();
       navigate("/scoreboard", { replace: true });
+      await fetch(`${baseUrl}/terminateClient?client_id=${clientId}`);
       return;
     }
     playerStore.update((currentPlayers) =>
