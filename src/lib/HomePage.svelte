@@ -7,6 +7,7 @@
   import { Link } from "svelte-routing";
 
   import * as ToggleGroup from "$lib/components/ui/toggle-group/index.js";
+  import * as Dialog from "$lib/components/ui/dialog";
 
   const addPlayer = () => {
     playerStore.update((currentPlayers) => [
@@ -86,3 +87,41 @@
     <ArrowRightIcon />
   </button>
 </Link>
+
+<Dialog.Root open={true}>
+  <Dialog.Content>
+    <Dialog.Header>
+      <Dialog.Title>How to Play</Dialog.Title>
+      <div class="space-y-2">
+        <h3 class="text-lg font-medium">Set Up the Game:</h3>
+        <ul class="ml-4 text-sm list-disc space-y-1">
+          <li>Enter the number of players and each player's name.</li>
+          <li>Choose the number of rounds you want to play.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-lg font-medium">Gameplay:</h3>
+        <ul class="ml-4 text-sm list-disc space-y-1">
+          <li>A song will play in each round.</li>
+          <li>
+            As soon as you recognize the song, be the first to guess the correct
+            title.
+          </li>
+          <li>The first person to guess the song correctly wins the round.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-lg font-medium">Winning:</h3>
+        <ul class="ml-4 text-sm list-disc space-y-1">
+          <li>
+            The game continues until the chosen number of rounds is complete.
+          </li>
+          <li>
+            The player with the most correct guesses at the end of all rounds is
+            the winner.
+          </li>
+        </ul>
+      </div>
+    </Dialog.Header>
+  </Dialog.Content>
+</Dialog.Root>
